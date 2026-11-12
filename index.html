@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AC Visuels</title>
+<meta name="description" content="Générateurs de visuels AlloCiné : statiques et carrousels.">
+<!-- Appli installable (PWA) : manifeste, icônes, réglages iPhone. -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0e0e0f">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AC Visuels">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* Mêmes couleurs et même police que les générateurs (thème de News Statique). */
+:root{
+  --bg:#0e0e0f; --panel:#18181a; --line:#2c2c30; --fg:#f2f0ea; --muted:#9a9aa2;
+  --accent:#fecc00; --accent-ink:#141200;
+  --ui:'Barlow Semi Condensed','Arial Narrow',system-ui,sans-serif;
+  /* Zones sûres du téléphone (encoche, barre d'accueil iPhone). */
+  --st:env(safe-area-inset-top,0px); --sb:env(safe-area-inset-bottom,0px);
+  --sl:env(safe-area-inset-left,0px); --sr:env(safe-area-inset-right,0px);
+  --tabs-h:64px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--fg);font:500 16px/1.35 var(--ui);color-scheme:dark;-webkit-tap-highlight-color:transparent}
+svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+/* ----- Accueil ----- */
+.home{max-width:760px;margin:0 auto;
+  padding:calc(20px + var(--st)) max(16px,var(--sr)) calc(var(--tabs-h) + var(--sb) + 110px) max(16px,var(--sl))}
+.head{display:flex;align-items:center;gap:12px;margin:4px 4px 26px}
+.head img{width:44px;height:44px;border-radius:11px;display:block}
+.head h1{font:600 24px/1.05 var(--ui);margin:0}
+.head p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:22px 8px}
+.tile{display:flex;flex-direction:column;align-items:center;text-align:center;color:var(--fg);text-decoration:none;padding:4px 2px;border-radius:10px}
+.tile .ic{width:64px;height:64px;border-radius:17px;background:var(--panel);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
+  color:var(--accent);font-size:28px;transition:transform .12s,border-color .12s}
+.tile:hover .ic{border-color:var(--accent)}
+.tile:active .ic{transform:scale(.94)}
+.tile .nom{margin-top:7px;font-size:15px;line-height:1.15}
+.tile .fmt{color:var(--muted);font-size:12px;margin-top:1px}
+
+/* ----- Barre d'onglets en bas ----- */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--panel);border-top:1px solid var(--line);
+  display:flex;justify-content:center;padding:0 var(--sr) var(--sb) var(--sl)}
+.tabs button{flex:1;max-width:220px;height:var(--tabs-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  color:var(--muted);font-size:13px;letter-spacing:.02em}
+.tabs button svg{font-size:24px}
+.tabs button[aria-selected="true"]{color:var(--accent)}
+
+/* ----- Bandeau d'installation ----- */
+.install{position:fixed;z-index:6;left:max(12px,var(--sl));right:max(12px,var(--sr));bottom:calc(var(--tabs-h) + var(--sb) + 12px);
+  max-width:520px;margin:0 auto;background:var(--accent);color:var(--accent-ink);border-radius:14px;padding:12px 10px 12px 14px;
+  display:flex;align-items:center;gap:12px;box-shadow:0 6px 24px rgba(0,0,0,.45)}
+.install[hidden]{display:none}
+.install .big{font-size:24px}
+.install .txt{flex:1;font-size:14px;line-height:1.3}
+.install .txt b{display:block;font-weight:600;font-size:15px}
+.install .txt svg{font-size:16px;vertical-align:-3px}
+.install .go{background:var(--accent-ink);color:var(--accent);border-radius:20px;padding:7px 14px;font-weight:600;font-size:14px}
+.install .close{width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:20px;border-radius:50%}
+
+/* ----- Générateur ouvert dans l'appli ----- */
+.viewer{position:fixed;inset:0;z-index:10;background:var(--bg);display:flex;flex-direction:column}
+.viewer[hidden]{display:none}
+.vbar{display:flex;align-items:center;gap:6px;background:var(--panel);border-bottom:1px solid var(--line);
+  padding:var(--st) max(8px,var(--sr)) 0 max(4px,var(--sl));min-height:calc(48px + var(--st))}
+.vbar .back{display:flex;align-items:center;gap:2px;color:var(--accent);font-size:16px;padding:10px 8px;border-radius:8px}
+.vbar .back svg{font-size:22px}
+.vbar .titre{flex:1;text-align:center;font-weight:600;font-size:16px;margin-right:96px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.viewer iframe{flex:1;width:100%;border:0;background:var(--bg)}
+</style>
+</head>
+<body>
+
+<main class="home" id="home">
+  <header class="head">
+    <img src="icons/icon-192.png" alt="">
+    <div><h1>AC Visuels</h1><p>Générateurs AlloCiné</p></div>
+  </header>
+  <ul class="grid" id="grid" role="tabpanel" aria-labelledby="tab-statiques"></ul>
+</main>
+
+<nav class="tabs" role="tablist" aria-label="Catégories">
+  <button role="tab" id="tab-statiques" data-cat="statiques" aria-selected="true" aria-controls="grid"></button>
+  <button role="tab" id="tab-carrousels" data-cat="carrousels" aria-selected="false" aria-controls="grid"></button>
+</nav>
+
+<div class="install" id="install" hidden role="dialog" aria-label="Installer l'appli">
+  <span class="big" id="installIc"></span>
+  <div class="txt" id="installTxt"></div>
+  <button class="go" id="installGo" hidden>Installer</button>
+  <button class="close" id="installClose" aria-label="Fermer"></button>
+</div>
+
+<section class="viewer" id="viewer" hidden>
+  <div class="vbar">
+    <button class="back" id="back"><span id="backIc"></span>AC Visuels</button>
+    <div class="titre" id="vtitre"></div>
+  </div>
+  <iframe id="frame" title="Générateur" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
+</section>
+
+<script>
+(function(){
+'use strict';
+
+/* Liste des générateurs, dans l'ordre d'affichage.
+   « dossier » = nom du dossier local = nom du dépôt GitHub = chemin en ligne (jhervier.github.io/<dossier>/).
+   La catégorie se déduit du nom : tout ce qui contient « carrousel » va dans Carrousels, le reste dans Statiques.
+   Décès est en premier (demande de l'équipe), sans mise en avant particulière. */
+const GENERATEURS = [
+  { dossier:'allocine-news-deces',         nom:'Décès',          fmt:'3:4',      icone:'flower' },
+  { dossier:'allocine-news-statique',      nom:'News',           fmt:'3:4',      icone:'news' },
+  { dossier:'allocine-citation-statique',  nom:'Citation',       fmt:'3:4',      icone:'quote' },
+  { dossier:'allocine-story-affiche',      nom:'Story affiche',  fmt:'9:16',     icone:'movie' },
+  { dossier:'allocine-vignette-reels',     nom:'Vignette Reels', fmt:'9:16',     icone:'play' },
+  { dossier:'allocine-carrousel-narratif', nom:'Narratif',       fmt:'3:4 × N',  icone:'carousel' },
+  { dossier:'allocine-carrousel-top',      nom:'Top 10',         fmt:'3:4 × 11', icone:'trophy' }
+];
+const categorie = g => /carrousel/i.test(g.dossier) ? 'carrousels' : 'statiques';
+
+/* Icônes Tabler (outline, licence MIT), tracés repris tels quels du paquet @tabler/icons 3.19. */
+const ICONES = {
+  flower:'<path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.090 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3z"/>',
+  news:'<path d="M16 6h3a1 1 0 0 1 1 1v11a2 2 0 0 1 -4 0v-13a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1v12a3 3 0 0 0 3 3h11"/><path d="M8 8l4 0"/><path d="M8 12l4 0"/><path d="M8 16l4 0"/>',
+  quote:'<path d="M10 11h-4a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1h3a1 1 0 0 1 1 1v6c0 2.667 -1.333 4.333 -4 5"/><path d="M19 11h-4a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1h3a1 1 0 0 1 1 1v6c0 2.667 -1.333 4.333 -4 5"/>',
+  movie:'<path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/><path d="M8 4l0 16"/><path d="M16 4l0 16"/><path d="M4 8l4 0"/><path d="M4 16l4 0"/><path d="M4 12l16 0"/><path d="M16 8l4 0"/><path d="M16 16l4 0"/>',
+  play:'<path d="M7 4v16l13 -8z"/>',
+  carousel:'<path d="M7 5m0 1a1 1 0 0 1 1 -1h8a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-8a1 1 0 0 1 -1 -1z"/><path d="M22 17h-1a1 1 0 0 1 -1 -1v-8a1 1 0 0 1 1 -1h1"/><path d="M2 17h1a1 1 0 0 0 1 -1v-8a1 1 0 0 0 -1 -1h-1"/>',
+  trophy:'<path d="M8 21l8 0"/><path d="M12 17l0 4"/><path d="M7 4l10 0"/><path d="M17 4v8a5 5 0 0 1 -10 0v-8"/><path d="M5 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M19 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/>',
+  photo:'<path d="M15 8h.01"/><path d="M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12z"/><path d="M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5"/><path d="M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"/>',
+  share:'<path d="M8 9h-1a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-8a2 2 0 0 0 -2 -2h-1"/><path d="M12 14v-11"/><path d="M9 6l3 -3l3 3"/>',
+  download:'<path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/>',
+  x:'<path d="M18 6l-12 12"/><path d="M6 6l12 12"/>',
+  chevronLeft:'<path d="M15 6l-6 6l6 6"/>'
+};
+const svg = n => '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + ICONES[n] + '</svg>';
+
+/* Petite mémoire locale (onglet choisi, bandeau fermé). Peut être indisponible (navigation privée) : on ignore alors. */
+const memo = {
+  get(k){ try { return localStorage.getItem('acv.' + k); } catch(e){ return null; } },
+  set(k, v){ try { localStorage.setItem('acv.' + k, v); } catch(e){} }
+};
+
+/* Adresse d'un générateur. En ligne, tous les dépôts sont sous jhervier.github.io : /<dossier>/.
+   En local (file://), les dossiers sont voisins de celui-ci : ../<dossier>/index.html. */
+const enLocal = location.protocol === 'file:';
+const urlDe = d => enLocal ? '../' + d + '/index.html' : '/' + d + '/';
+
+const $ = id => document.getElementById(id);
+const grid = $('grid'), viewer = $('viewer'), frame = $('frame');
+
+/* ----- Onglets ----- */
+const ONGLETS = { statiques:{ label:'Statiques', icone:'photo' }, carrousels:{ label:'Carrousels', icone:'carousel' } };
+const tabs = [...document.querySelectorAll('.tabs button')];
+tabs.forEach(b => { const o = ONGLETS[b.dataset.cat]; b.innerHTML = svg(o.icone) + o.label; });
+
+function afficher(cat){
+  if (!ONGLETS[cat]) cat = 'statiques';
+  tabs.forEach(b => b.setAttribute('aria-selected', String(b.dataset.cat === cat)));
+  grid.setAttribute('aria-labelledby', 'tab-' + cat);
+  grid.innerHTML = GENERATEURS.filter(g => categorie(g) === cat).map(g =>
+    '<li><a class="tile" href="' + urlDe(g.dossier) + '" data-d="' + g.dossier + '">' +
+      '<span class="ic">' + svg(g.icone) + '</span>' +
+      '<span class="nom">' + g.nom + '</span><span class="fmt">' + g.fmt + '</span></a></li>').join('');
+  memo.set('onglet', cat);
+}
+tabs.forEach(b => b.addEventListener('click', () => afficher(b.dataset.cat)));
+/* Flèches gauche/droite entre les onglets (accessibilité clavier). */
+document.querySelector('.tabs').addEventListener('keydown', e => {
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  const i = tabs.findIndex(b => b.getAttribute('aria-selected') === 'true');
+  const n = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+  afficher(n.dataset.cat); n.focus();
+});
+afficher(memo.get('onglet') || 'statiques');
+
+/* ----- Ouvrir un générateur dans l'appli -----
+   Le générateur s'affiche plein écran sous une barre « ‹ AC Visuels ». Sans ça, sur iPhone, une fois installé,
+   il n'y aurait aucun bouton pour revenir à l'accueil (pas de bouton Retour dans une appli web).
+   Les pages des générateurs ne sont pas modifiées. Ctrl/Cmd+clic ouvre toujours dans un nouvel onglet. */
+$('backIc').innerHTML = svg('chevronLeft');
+let ouvertDepuisAccueil = false;
+
+function routeur(){
+  const d = decodeURIComponent(location.hash.replace(/^#\/?/, ''));
+  const g = GENERATEURS.find(x => x.dossier === d);
+  if (g){
+    if (frame.dataset.d !== d){ frame.src = urlDe(d); frame.dataset.d = d; }
+    $('vtitre').textContent = g.nom;
+    document.title = g.nom + ' · AC Visuels';
+    viewer.hidden = false;
+    $('back').focus({ preventScroll:true });
+  } else {
+    viewer.hidden = true;
+    frame.removeAttribute('src'); delete frame.dataset.d;
+    document.title = 'AC Visuels';
+  }
+  majBandeau();
+}
+grid.addEventListener('click', e => {
+  const a = e.target.closest('a.tile');
+  if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+  e.preventDefault();
+  history.pushState({ gen:a.dataset.d }, '', '#/' + a.dataset.d);
+  ouvertDepuisAccueil = true;
+  routeur();
+});
+$('back').addEventListener('click', () => {
+  if (ouvertDepuisAccueil){ ouvertDepuisAccueil = false; history.back(); return; }
+  /* Arrivé directement sur un lien #/dossier : on revient à l'accueil sans quitter l'appli. */
+  history.replaceState(null, '', location.pathname + location.search);
+  routeur();
+});
+addEventListener('popstate', () => { ouvertDepuisAccueil = false; routeur(); });
+addEventListener('hashchange', routeur);
+
+/* ----- Bandeau d'installation -----
+   iPhone/iPad : Safari n'a pas de bouton « Installer », on explique le geste (Partager → Sur l'écran d'accueil).
+   Android/Chrome : le navigateur propose l'installation, on l'expose avec un bouton « Installer ».
+   Rien si l'appli est déjà installée, ou si le bandeau a été fermé. */
+const installe = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+let invite = null, mode = null;
+
+$('installClose').innerHTML = svg('x');
+function majBandeau(){
+  $('install').hidden = !mode || installe || memo.get('bandeau') === 'ferme' || !viewer.hidden;
+}
+if (!installe && ios){
+  mode = 'ios';
+  $('installIc').innerHTML = svg('share');
+  $('installTxt').innerHTML = '<b>Installer AC Visuels</b>Touchez ' + svg('share') + ' Partager, puis « Sur l’écran d’accueil ».';
+}
+addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); invite = e; mode = 'android';
+  $('installIc').innerHTML = svg('download');
+  $('installTxt').innerHTML = '<b>Installer AC Visuels</b>Accès direct depuis l’écran d’accueil.';
+  $('installGo').hidden = false;
+  majBandeau();
+});
+$('installGo').addEventListener('click', async () => {
+  if (!invite) return;
+  invite.prompt();
+  try { await invite.userChoice; } catch(err){}
+  invite = null; mode = null; majBandeau();
+});
+$('installClose').addEventListener('click', () => { memo.set('bandeau', 'ferme'); majBandeau(); });
+addEventListener('appinstalled', () => { mode = null; majBandeau(); });
+
+routeur();
+
+/* Service worker : garde l'accueil disponible hors ligne. En ligne uniquement (https). */
+if ('serviceWorker' in navigator && location.protocol === 'https:'){
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+window.__acv = { GENERATEURS, afficher, routeur, categorie };
+})();
+</script>
+</body>
+</html>
