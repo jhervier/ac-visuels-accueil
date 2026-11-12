@@ -110,7 +110,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     <button class="back" id="back"><span id="backIc"></span>AC Visuels</button>
     <div class="titre" id="vtitre"></div>
   </div>
-  <iframe id="frame" title="Générateur" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
+  <!-- Le cadre (iframe) du générateur est créé à chaque ouverture, voir routeur(). -->
 </section>
 
 <script>
@@ -127,8 +127,8 @@ const GENERATEURS = [
   { dossier:'allocine-citation-statique',  nom:'Citation',       fmt:'3:4',      icone:'quote' },
   { dossier:'allocine-story-affiche',      nom:'Story affiche',  fmt:'9:16',     icone:'movie' },
   { dossier:'allocine-vignette-reels',     nom:'Vignette Reels', fmt:'9:16',     icone:'play' },
-  { dossier:'allocine-carrousel-narratif', nom:'Narratif',       fmt:'3:4 × N',  icone:'carousel' },
-  { dossier:'allocine-carrousel-top',      nom:'Top 10',         fmt:'3:4 × 11', icone:'trophy' }
+  { dossier:'allocine-carrousel-narratif', nom:'Narratif',       fmt:'3:4',      icone:'carousel' },
+  { dossier:'allocine-carrousel-top',      nom:'Top 10',         fmt:'3:4',      icone:'trophy' }
 ];
 const categorie = g => /carrousel/i.test(g.dossier) ? 'carrousels' : 'statiques';
 
@@ -161,7 +161,8 @@ const enLocal = location.protocol === 'file:';
 const urlDe = d => enLocal ? '../' + d + '/index.html' : '/' + d + '/';
 
 const $ = id => document.getElementById(id);
-const grid = $('grid'), viewer = $('viewer'), frame = $('frame');
+const grid = $('grid'), viewer = $('viewer');
+let frame = null;
 
 /* ----- Onglets ----- */
 const ONGLETS = { statiques:{ label:'Statiques', icone:'photo' }, carrousels:{ label:'Carrousels', icone:'carousel' } };
@@ -198,15 +199,27 @@ let ouvertDepuisAccueil = false;
 function routeur(){
   const d = decodeURIComponent(location.hash.replace(/^#\/?/, ''));
   const g = GENERATEURS.find(x => x.dossier === d);
+  /* Un cadre neuf à chaque ouverture, retiré à la fermeture.
+     Bug corrigé : en réutilisant le même cadre, ouvrir un 2e générateur faisait naviguer le cadre
+     (A → B), ce qui ajoutait une étape dans l'historique. « ‹ AC Visuels » (history.back) ramenait
+     alors le cadre en arrière (page blanche) au lieu de revenir à l'accueil : il fallait cliquer deux fois.
+     Le premier chargement d'un cadre neuf, lui, n'ajoute rien à l'historique. */
   if (g){
-    if (frame.dataset.d !== d){ frame.src = urlDe(d); frame.dataset.d = d; }
+    if (!frame || frame.dataset.d !== d){
+      if (frame) frame.remove();
+      frame = document.createElement('iframe');
+      frame.title = g.nom;
+      frame.allow = 'clipboard-read; clipboard-write; fullscreen';
+      frame.dataset.d = d;
+      frame.src = urlDe(d);
+      viewer.appendChild(frame);
+    }
     $('vtitre').textContent = g.nom;
     document.title = g.nom + ' · AC Visuels';
     viewer.hidden = false;
-    $('back').focus({ preventScroll:true });
   } else {
     viewer.hidden = true;
-    frame.removeAttribute('src'); delete frame.dataset.d;
+    if (frame){ frame.remove(); frame = null; }
     document.title = 'AC Visuels';
   }
   majBandeau();
