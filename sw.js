@@ -3,7 +3,7 @@
    Sa portée est limitée au dossier de l'accueil : les générateurs et les autres dépôts jhervier.github.io ne sont jamais touchés.
    Changer VERSION à chaque mise en ligne de l'accueil pour renouveler la copie locale. */
 'use strict';
-const VERSION = 'acv-2026-11-12c';
+const VERSION = 'acv-2026-11-12d';
 /* Le dossier de l'accueil (en ligne : /ac-visuels-accueil/), déduit de l'adresse de ce fichier. */
 const BASE = new URL('./', self.location).pathname;
 const ACCUEIL = [
